@@ -1,4 +1,4 @@
-#Blockgames Game Phase Speedrunethereum challenge
+# Blockgames Game Phase Speedrunethereum challenge
 
 Frontend URL: https://milky-order.surge.sh/
 
