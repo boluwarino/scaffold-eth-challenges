@@ -1,4 +1,3 @@
-require("dotenv").config();
 const { utils } = require("ethers");
 const fs = require("fs");
 const chalk = require("chalk");
@@ -7,8 +6,8 @@ require("@nomiclabs/hardhat-waffle");
 require("@tenderly/hardhat-tenderly");
 
 require("hardhat-deploy");
-require("hardhat-gas-reporter");
 
+require("@eth-optimism/hardhat-ovm");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 
@@ -26,9 +25,9 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 // Select the network you want to deploy to here:
 //
-const defaultNetwork = "localhost";
+const defaultNetwork = "rinkeby";
 
-const mainnetGwei = 21;
+const mainnetGwei = 115;
 
 function mnemonic() {
   try {
@@ -46,22 +45,10 @@ function mnemonic() {
 module.exports = {
   defaultNetwork,
 
-  /**
-   * gas reporter configuration that let's you know
-   * an estimate of gas for contract deployments and function calls
-   * More here: https://hardhat.org/plugins/hardhat-gas-reporter.html
-   */
-  gasReporter: {
-    currency: "USD",
-    coinmarketcap: process.env.COINMARKETCAP || null,
-  },
-
-  // if you want to deploy to a testnet, mainnet, or xdai, you will need to configure:
-  // 1. An Infura key (or similar)
-  // 2. A private key for the deployer
-  // DON'T PUSH THESE HERE!!!
-  // An `example.env` has been provided in the Hardhat root. Copy it and rename it `.env`
-  // Follow the directions, and uncomment the network you wish to deploy to.
+  // don't forget to set your provider like:
+  // REACT_APP_PROVIDER=https://dai.poa.network in packages/react-app/.env
+  // (then your frontend will talk to your contracts on the live network!)
+  // (you will need to restart the `yarn run start` dev server after editing the .env)
 
   networks: {
     localhost: {
@@ -115,32 +102,16 @@ module.exports = {
         mnemonic: mnemonic(),
       },
     },
-    fantom: {
-      url: "https://rpcapi.fantom.network",
-      gasPrice: 1000000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    testnetFantom: {
-      url: "https://rpc.testnet.fantom.network",
-      gasPrice: 1000000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
     polygon: {
-      url: "https://polygon-rpc.com",
-      // url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXx/polygon/mainnet", // <---- YOUR MORALIS ID! (not limited to infura)
-      gasPrice: 3200000000,
+      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXx/polygon/mainnet", // <---- YOUR MORALIS ID! (not limited to infura)
+      gasPrice: 1000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
     },
-    mumbai: {
-      url: "https://rpc-mumbai.maticvigil.com",
-      // url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/polygon/mumbai", // <---- YOUR MORALIS ID! (not limited to infura)
-      gasPrice: 3200000000,
+    polytest: {
+      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/polygon/mumbai", // <---- YOUR MORALIS ID! (not limited to infura)
+      gasPrice: 1000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
@@ -152,29 +123,54 @@ module.exports = {
         mnemonic: mnemonic(),
       },
     },
-    optimism: {
-      url: "https://mainnet.optimism.io",
+    rinkebyArbitrum: {
+      url: "https://rinkeby.arbitrum.io/rpc",
+      gasPrice: 0,
       accounts: {
         mnemonic: mnemonic(),
       },
       companionNetworks: {
-        l1: "mainnet",
+        l1: "rinkeby",
+      },
+    },
+    localArbitrum: {
+      url: "http://localhost:8547",
+      gasPrice: 0,
+      accounts: {
+        mnemonic: mnemonic(),
+      },
+      companionNetworks: {
+        l1: "localArbitrumL1",
+      },
+    },
+    localArbitrumL1: {
+      url: "http://localhost:7545",
+      gasPrice: 0,
+      accounts: {
+        mnemonic: mnemonic(),
+      },
+      companionNetworks: {
+        l2: "localArbitrum",
       },
     },
     kovanOptimism: {
       url: "https://kovan.optimism.io",
+      gasPrice: 0,
       accounts: {
         mnemonic: mnemonic(),
       },
+      ovm: true,
       companionNetworks: {
         l1: "kovan",
       },
     },
     localOptimism: {
       url: "http://localhost:8545",
+      gasPrice: 0,
       accounts: {
         mnemonic: mnemonic(),
       },
+      ovm: true,
       companionNetworks: {
         l1: "localOptimismL1",
       },
@@ -229,34 +225,6 @@ module.exports = {
         mnemonic: mnemonic(),
       },
     },
-    moonbeam: {
-      url: 'https://rpc.api.moonbeam.network',
-      chainId: 1284,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    moonriver: {
-      url: 'https://rpc.api.moonriver.moonbeam.network',
-      chainId: 1285,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    moonbaseAlpha: {
-      url: 'https://rpc.api.moonbase.moonbeam.network',
-      chainId: 1287,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    moonbeamDevNode: {
-      url: 'http://127.0.0.1:9933',
-      chainId: 1281,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    }
   },
   solidity: {
     compilers: [
@@ -289,10 +257,7 @@ module.exports = {
     },
   },
   etherscan: {
-    apiKey: {
-      mainnet: "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW",
-      // add other network's API key here
-    },
+    apiKey: "PSW8C433Q667DVEX5BCRMGNAH9FSGFZ7Q8", // your api key here
   },
 };
 
@@ -473,49 +438,42 @@ task(
   async (_, { ethers }) => {
     const hdkey = require("ethereumjs-wallet/hdkey");
     const bip39 = require("bip39");
-    try {
-      const mnemonic = fs.readFileSync("./mnemonic.txt").toString().trim();
-      if (DEBUG) console.log("mnemonic", mnemonic);
-      const seed = await bip39.mnemonicToSeed(mnemonic);
-      if (DEBUG) console.log("seed", seed);
-      const hdwallet = hdkey.fromMasterSeed(seed);
-      const wallet_hdpath = "m/44'/60'/0'/0/";
-      const account_index = 0;
-      const fullPath = wallet_hdpath + account_index;
-      if (DEBUG) console.log("fullPath", fullPath);
-      const wallet = hdwallet.derivePath(fullPath).getWallet();
-      const privateKey = "0x" + wallet._privKey.toString("hex");
-      if (DEBUG) console.log("privateKey", privateKey);
-      const EthUtil = require("ethereumjs-util");
-      const address =
-        "0x" + EthUtil.privateToAddress(wallet._privKey).toString("hex");
+    const mnemonic = fs.readFileSync("./mnemonic.txt").toString().trim();
+    if (DEBUG) console.log("mnemonic", mnemonic);
+    const seed = await bip39.mnemonicToSeed(mnemonic);
+    if (DEBUG) console.log("seed", seed);
+    const hdwallet = hdkey.fromMasterSeed(seed);
+    const wallet_hdpath = "m/44'/60'/0'/0/";
+    const account_index = 0;
+    const fullPath = wallet_hdpath + account_index;
+    if (DEBUG) console.log("fullPath", fullPath);
+    const wallet = hdwallet.derivePath(fullPath).getWallet();
+    const privateKey = "0x" + wallet._privKey.toString("hex");
+    if (DEBUG) console.log("privateKey", privateKey);
+    const EthUtil = require("ethereumjs-util");
+    const address =
+      "0x" + EthUtil.privateToAddress(wallet._privKey).toString("hex");
 
-      const qrcode = require("qrcode-terminal");
-      qrcode.generate(address);
-      console.log("‍📬 Deployer Account is " + address);
-      for (const n in config.networks) {
-        // console.log(config.networks[n],n)
-        try {
-          const provider = new ethers.providers.JsonRpcProvider(
-            config.networks[n].url
-          );
-          const balance = await provider.getBalance(address);
-          console.log(" -- " + n + " --  -- -- 📡 ");
-          console.log("   balance: " + ethers.utils.formatEther(balance));
-          console.log(
-            "   nonce: " + (await provider.getTransactionCount(address))
-          );
-        } catch (e) {
-          if (DEBUG) {
-            console.log(e);
-          }
+    const qrcode = require("qrcode-terminal");
+    qrcode.generate(address);
+    console.log("‍📬 Deployer Account is " + address);
+    for (const n in config.networks) {
+      // console.log(config.networks[n],n)
+      try {
+        const provider = new ethers.providers.JsonRpcProvider(
+          config.networks[n].url
+        );
+        const balance = await provider.getBalance(address);
+        console.log(" -- " + n + " --  -- -- 📡 ");
+        console.log("   balance: " + ethers.utils.formatEther(balance));
+        console.log(
+          "   nonce: " + (await provider.getTransactionCount(address))
+        );
+      } catch (e) {
+        if (DEBUG) {
+          console.log(e);
         }
       }
-    } catch (err) {
-      console.log(`--- Looks like there is no mnemonic file created yet.`);
-      console.log(
-        `--- Please run ${chalk.greenBright("yarn generate")} to create one`
-      );
     }
   }
 );
